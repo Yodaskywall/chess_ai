@@ -10,6 +10,15 @@ pieces = {
     "q" : "Queen"
 }
 
+piece_value = {
+    "Pawn" : 1,
+    "Knight" : 3,
+    "Bishop" : 3,
+    "Rook" : 5,
+    "Queen" : 9,
+    "King" : 0
+}
+
 class Board:
     def __init__(self, fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"):
         self.board = []
@@ -144,6 +153,17 @@ class Board:
             if p.name == "King" and p.colour == self.player:
                 return p.check_mate([p.x, p.y])
 
+
+    def evaluate(self):
+        value = 0
+        for piece in self.pieces:
+            if piece.colour == "White":
+                value += piece_value[piece.name]
+
+            else:
+                value -= piece_value[piece.name]
+
+        return value
 
 
 def print_board(board):

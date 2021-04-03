@@ -41,7 +41,7 @@ class Pawn(Piece):
     def possible_moves(self, checking_mate=False):
         possible_moves = []
         colour_int = -1 if self.colour == "White" else 1
-        if not (self.colour == "White" and self.y == 7) and not (self.colour == "Black" and self.y == 0) and self.board.board[self.x][self.y + (1 * colour_int)] == 0:
+        if 0 <= self.y + (1 * colour_int) <= 7 and self.board.board[self.x][self.y + (1 * colour_int)] == 0:
             possible_moves.append([self.x, self.y + (1 * colour_int)])
             if not self.moved and 0 <= self.y + (2 * colour_int) <= 7 and self.board.board[self.x][self.y + (2 * colour_int)] == 0:
                 possible_moves.append([self.x, self.y + (2 * colour_int)])
@@ -60,7 +60,6 @@ class Pawn(Piece):
             if 0 <= self.x + i <= 7 and 0 <= self.y + colour_int <= 7:
                 adjacent_piece = self.board.board[self.x + i][self.y]
                 if adjacent_piece and adjacent_piece.colour != self.colour and adjacent_piece.name == "Pawn" and adjacent_piece.just_moved2:
-                    print("pitodeleche")
                     possible_moves.append([self.x + i, self.y + colour_int, adjacent_piece])
 
 
