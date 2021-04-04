@@ -1,5 +1,7 @@
 from board import Board
 import pygame
+from time import sleep
+from minimax import minimax
 
 BLACK_CLR = (107,61,15)
 WHITE_CLR = (232,195,158)
@@ -104,7 +106,7 @@ class Game:
         for i in range(8):
             for j in range(8):
                 self.squares.append(Square([i,j]))
-    
+      
     def get_square(self, mouse_pos):
         x = mouse_pos[0] // (width // 8)
         y = mouse_pos[1] // (height // 8)
@@ -116,45 +118,49 @@ game = Game()
 
 while game.board.winner is None:
 
-    #print(game.board.evaluate())
+    if game.board.player == "White":
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                square = game.get_square(pygame.mouse.get_pos())
+                piece = game.board.board[square.x][square.y]
+                if piece != 0 and piece.colour == game.board.player:
+                    if not(game.piece_selected is None):
+                        game.squares[game.piece_selected.x * 8 + game.piece_selected.y].state = 0
+                        for sq in game.squares:
+                            if sq.state == 2:
+                                sq.state = 0
 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            square = game.get_square(pygame.mouse.get_pos())
-            piece = game.board.board[square.x][square.y]
-            if piece != 0 and piece.colour == game.board.player:
-                if not(game.piece_selected is None):
-                    game.squares[game.piece_selected.x * 8 + game.piece_selected.y].state = 0
-                    for sq in game.squares:
-                        if sq.state == 2:
-                            sq.state = 0
+                    square.state = 1
+                    game.piece_selected = piece
+                    for square_pos in piece.possible_moves():
+                        game.squares[square_pos[0] * 8 + square_pos[1]].state = 2
 
-                square.state = 1
-                game.piece_selected = piece
-                for square_pos in piece.possible_moves():
-                    game.squares[square_pos[0] * 8 + square_pos[1]].state = 2
+                elif game.piece_selected and [square.x, square.y] in game.piece_selected.possible_moves():
+                   game.board.move(game.piece_selected, [square.x, square.y]) 
+                   for square in game.squares:
+                       if square.state != 0:
+                           square.state = 0
+                   game.piece_selected = None
 
-            elif game.piece_selected and [square.x, square.y] in game.piece_selected.possible_moves():
-               game.board.move(game.piece_selected, [square.x, square.y]) 
-               for square in game.squares:
-                   if square.state != 0:
-                       square.state = 0
-               game.piece_selected = None
+                elif game.piece_selected and [square.x, square.y] in [pito[:2] for pito in game.piece_selected.possible_moves()]:
+                   for pito in game.piece_selected.possible_moves():
+                       if pito[0] == square.x and pito[1] == square.y:
+                           game.board.move(game.piece_selected, pito) 
+                           for square in game.squares:
+                               if square.state != 0:
+                                   square.state = 0
+                           game.piece_selected = None
 
-            elif game.piece_selected and [square.x, square.y] in [pito[:2] for pito in game.piece_selected.possible_moves()]:
-               for pito in game.piece_selected.possible_moves():
-                   if pito[0] == square.x and pito[1] == square.y:
-                       game.board.move(game.piece_selected, pito) 
-                       for square in game.squares:
-                           if square.state != 0:
-                               square.state = 0
-                       game.piece_selected = None
+                elif piece != 0 and piece.name == "Pawn":
+                    pass
 
-            elif piece != 0 and piece.name == "Pawn":
-                pass
+
+    else:
+        piece, pos = minimax(game.board, 3, -1000, 1000, False)[1]
+        game.board.move(piece, pos)
 
 
     for square in game.squares:
@@ -163,8 +169,8 @@ while game.board.winner is None:
     for piece in game.board.pieces:
         display_piece(screen, piece)
     
-    pygame.display.update() 
-    
+    pygame.display.update()
+
 pygame.font.init()
 myfont = pygame.font.SysFont("Times New Roman", 120)
 if game.board.winner.upper() != "DRAW":

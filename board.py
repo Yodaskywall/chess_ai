@@ -1,5 +1,6 @@
 from pieces import *
 from copy import deepcopy
+import pickle
 
 pieces = {
     "p" : "Pawn",
@@ -11,12 +12,12 @@ pieces = {
 }
 
 piece_value = {
-    "Pawn" : 1,
-    "Knight" : 3,
-    "Bishop" : 3,
-    "Rook" : 5,
-    "Queen" : 9,
-    "King" : 0
+    "Pawn" : 10,
+    "Knight" : 30,
+    "Bishop" : 30,
+    "Rook" : 50,
+    "Queen" : 90,
+    "King" : 900
 }
 
 class Board:
@@ -25,6 +26,7 @@ class Board:
         self.pieces = []
         self.player = "White"
         self.winner = None
+        self.saved_state = None
         for i in range(8):
             self.board.append([])
             for j in range(8):
@@ -48,14 +50,14 @@ class Board:
                     self.pieces.append(piece)
                     c += 1
 
-    def move(self, piece, pos, checking_mate=False):
+    def move(self, piece, pos, checking_mate=False, enrocando=False):
         if len(pos) == 3 and pos[2].name == "Rook":
             if pos[2].x > 4:
-                self.move(pos[2], [5, piece.y])
+                self.move(pos[2], [5, piece.y], enrocando=True)
                 pos = [6, piece.y]
 
             else:
-                self.move(pos[2], [3, piece.y])
+                self.move(pos[2], [3, piece.y], enrocando=True)
                 pos = [2, piece.y]
 
         elif len(pos) == 3 and pos[2].name == "Pawn":
@@ -81,10 +83,25 @@ class Board:
         if piece.name in ["Pawn", "King", "Rook"]:
             piece.moved = True
 
-        if self.player == "White":
+        # Pawn to Queen
+        if piece.name == "Pawn":
+            if piece.colour == "White" and piece.y == 0:
+                new_piece = Queen(piece.pos, piece.colour, self)
+                self.board[piece.x][piece.y] = new_piece
+                self.pieces.remove(piece)
+                self.pieces.append(new_pieces)
+
+            elif piece.colour == "Black" and piece.y == 7:
+                new_piece = Queen(piece.pos, piece.colour, self)
+                self.board[piece.x][piece.y] = new_piece
+                self.pieces.remove(piece)
+                self.pieces.append(new_piece)
+                
+
+        if self.player == "White" and not enrocando:
             self.player = "Black"
 
-        else:
+        elif not enrocando:
             self.player = "White"
 
         for p in self.pieces:
@@ -164,6 +181,12 @@ class Board:
                 value -= piece_value[piece.name]
 
         return value
+
+    def save_state(self):
+        self.saved_state = pickle.dumps(self)
+
+    def load_state(self):
+        return pickle.loads(self.saved_state)
 
 
 def print_board(board):

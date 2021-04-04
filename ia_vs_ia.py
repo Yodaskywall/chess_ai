@@ -166,9 +166,9 @@ while game.board.winner is None:
     pygame.display.update()
 
     if game.board.player == "White":
-        piece, pos = minimax(game.board, 200, 0, 0, True)[1]
+        piece, pos = minimax(game.board, 4, -1000, 1000, True)[1]
     else:
-        piece, pos = minimax(game.board, 200, 0, 0, False)[1]
+        piece, pos = minimax(game.board, 4, -1000, 1000, False)[1]
     game.board.move(piece, pos)
     
 pygame.font.init()
