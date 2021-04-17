@@ -165,6 +165,45 @@ class Board:
         new_board = 0
         return mate
 
+    
+    def check_maate(self, piece, move):
+        self.save_state()
+        print(piece)
+        print(piece.pos)
+        print(piece.colour)
+        self.move(piece, move, True)
+        opposite_king = {}
+        for p in self.pieces:
+            if p.name == "King":
+                if p.colour == "White":
+                    opposite_king["Black"] = p.pos
+                else:
+                    opposite_king["White"] = p.pos
+
+        mate = 0
+        for p in self.pieces:
+            if p.colour in opposite_king and opposite_king[p.colour] in p.possible_moves(True):
+                if p.colour == "White":
+                    if mate == 0:
+                        mate = 2
+
+                    else:
+                        mate = 3
+
+                else:
+                    if mate == 0:
+                        mate = 1
+
+                    else:
+                        mate = 3
+
+        self.load_state()
+        #self.pieces = old_board.pieces
+        #self.board = old_board.board
+        #self.winner = old_board.winner
+        #self.saved_state = old_board.saved_state
+        return mate
+
     def in_mate(self):
         for p in self.pieces:
             if p.name == "King" and p.colour == self.player:
@@ -186,7 +225,7 @@ class Board:
         self.saved_state = pickle.dumps(self)
 
     def load_state(self):
-        return pickle.loads(self.saved_state)
+        self.__dict__.update(pickle.loads(self.saved_state).__dict__)
 
 
 def print_board(board):

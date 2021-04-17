@@ -116,11 +116,17 @@ game = Game()
 
 while game.board.winner is None:
 
-    #print(game.board.evaluate())
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             quit()
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_k:
+                game.board.save_state()
+
+            elif event.key == pygame.K_l:
+                game.board.load_state()
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             square = game.get_square(pygame.mouse.get_pos())
