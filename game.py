@@ -1,5 +1,6 @@
 from board import Board
 import pygame
+import time 
 
 BLACK_CLR = (107,61,15)
 WHITE_CLR = (232,195,158)
@@ -114,19 +115,18 @@ class Game:
         
 game = Game()
 
+move_info = None
+
 while game.board.winner is None:
-
-
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             quit()
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_k:
-                game.board.save_state()
-
-            elif event.key == pygame.K_l:
-                game.board.load_state()
+            if event.key == pygame.K_k and not move_info is None:
+                game.board.unmove(move_info)
+                move_info = None
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             square = game.get_square(pygame.mouse.get_pos())
@@ -144,6 +144,7 @@ while game.board.winner is None:
                     game.squares[square_pos[0] * 8 + square_pos[1]].state = 2
 
             elif game.piece_selected and [square.x, square.y] in game.piece_selected.possible_moves():
+               move_info = game.board.get_move_info(game.piece_selected, [square.x, square.y]) 
                game.board.move(game.piece_selected, [square.x, square.y]) 
                for square in game.squares:
                    if square.state != 0:
@@ -153,6 +154,7 @@ while game.board.winner is None:
             elif game.piece_selected and [square.x, square.y] in [pito[:2] for pito in game.piece_selected.possible_moves()]:
                for pito in game.piece_selected.possible_moves():
                    if pito[0] == square.x and pito[1] == square.y:
+                       move_info = game.board.get_move_info(game.piece_selected, pito)
                        game.board.move(game.piece_selected, pito) 
                        for square in game.squares:
                            if square.state != 0:

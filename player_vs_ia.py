@@ -1,6 +1,6 @@
 from board import Board
 import pygame
-from time import sleep
+from time import sleep, time
 from minimax import minimax
 
 BLACK_CLR = (107,61,15)
@@ -159,7 +159,10 @@ while game.board.winner is None:
 
 
     else:
+        pre_time = time()
         piece, pos = minimax(game.board, 3, -1000, 1000, False)[1]
+        runtime = time() - pre_time
+        #print(f"Runtime: {str(runtime)[:6]}s")
         game.board.move(piece, pos)
 
 

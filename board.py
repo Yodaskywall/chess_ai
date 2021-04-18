@@ -50,6 +50,71 @@ class Board:
                     self.pieces.append(piece)
                     c += 1
 
+    def get_move_info(self, piece, pos):
+
+        move_info = {"moving" : deepcopy(piece), "eating" : None, "enrocando" : None, "moved_to" : None} 
+        
+        #Enroque
+        if len(pos) == 3 and pos[2].name == "Rook":
+            if pos[2].x > 4:
+                move_info["enrocando"] = [deepcopy(pos[2]), [5, piece.y]]
+                move_info["moved_to"] = [6, piece.y]
+
+            else:
+                move_info["enrocando"] = [deepcopy(pos[2]), [3, piece.y]]
+                move_info["moved_to"] = [2, piece.y]
+
+
+        elif len(pos) == 3 and pos[2].name == "Pawn":
+            move_info["eating"] = deepcopy(pos[2])
+            move_info["moved_to"] = pos[:2]
+
+        else:
+            if self.board[pos[0]][pos[1]] != 0:
+                move_info["eating"] = deepcopy(self.board[pos[0]][pos[1]])
+
+            move_info["moved_to"] = pos
+
+        return move_info
+
+    def remove_piece(self, pos):
+        piece = self.board[pos[0]][pos[1]]
+        print(f"removing from pos: {pos}")
+        if piece == 0:
+            print("LA ESTÁS LIANDO MUCHOO")
+        if piece in self.pieces:
+            self.pieces.remove(piece)
+        self.board[pos[0]][pos[1]] = 0
+
+    def add_piece(self, piece):
+        print(f"adding piece {piece.name} {piece.pos}")
+        self.pieces.append(piece)
+        self.board[piece.x][piece.y] = piece
+        piece.board.__dict__.update(self.__dict__)
+
+    def unmove(self, move_info):
+        if not (move_info["enrocando"] is None):
+            self.remove_piece(move_info["enrocando"][1])
+            self.remove_piece(move_info["moved_to"])
+            self.add_piece(move_info["enrocando"][0])
+            self.add_piece(move_info["moving"])
+
+        else:
+            self.remove_piece(move_info["moved_to"])
+            self.add_piece(move_info["moving"])
+            if not (move_info["eating"] is None):
+                self.add_piece(move_info["eating"])
+
+        if not (self.winner is None):
+            self.winner = None
+
+        if self.player == "Black":
+            self.player = "White"
+
+        else:
+            self.player = "Black"
+
+
     def move(self, piece, pos, checking_mate=False, enrocando=False):
         if len(pos) == 3 and pos[2].name == "Rook":
             if pos[2].x > 4:
@@ -76,6 +141,8 @@ class Board:
 
         self.board[piece.x][piece.y] = 0
         if self.board[pos[0]][pos[1]] != 0:
+            print("xd")
+            print(self.board[pos[0]][pos[1]])
             self.pieces.remove(self.board[pos[0]][pos[1]])
         self.board[pos[0]][pos[1]] = piece
         piece.move(pos)
@@ -165,12 +232,8 @@ class Board:
         new_board = 0
         return mate
 
-    
     def check_maate(self, piece, move):
-        self.save_state()
-        print(piece)
-        print(piece.pos)
-        print(piece.colour)
+        move_info = self.get_move_info(piece, move) 
         self.move(piece, move, True)
         opposite_king = {}
         for p in self.pieces:
@@ -180,30 +243,28 @@ class Board:
                 else:
                     opposite_king["White"] = p.pos
 
+
         mate = 0
+
         for p in self.pieces:
-            if p.colour in opposite_king and opposite_king[p.colour] in p.possible_moves(True):
+            if opposite_king[p.colour] in p.possible_moves(True):
                 if p.colour == "White":
                     if mate == 0:
                         mate = 2
 
                     else:
                         mate = 3
-
+                    #return "Black"
                 else:
                     if mate == 0:
                         mate = 1
-
                     else:
                         mate = 3
+                    #return "White"
 
-        self.load_state()
-        #self.pieces = old_board.pieces
-        #self.board = old_board.board
-        #self.winner = old_board.winner
-        #self.saved_state = old_board.saved_state
+        self.unmove(move_info)
         return mate
-
+    
     def in_mate(self):
         for p in self.pieces:
             if p.name == "King" and p.colour == self.player:
