@@ -274,3 +274,12 @@ FEN_PIECES = {
     "k" : King
 }
 
+PIECES_FEN = {
+    "Pawn" : "p",
+    "Knight" : "n",
+    "Bishop" : "b",
+    "Rook" : "r",
+    "Queen" : "q",
+    "King" : "k"
+}
+

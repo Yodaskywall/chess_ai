@@ -21,7 +21,7 @@ piece_value = {
 }
 
 class Board:
-    def __init__(self, fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"):
+    def __init__(self, fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"):
         self.board = []
         self.pieces = []
         self.player = "White"
@@ -32,10 +32,26 @@ class Board:
             for j in range(8):
                 self.board[i].append(0)
 
-        for n, row in enumerate(fen.split("/")):
+        self.fen = fen
+        self.load_fen()
+
+    def load_fen(self):
+        print("loading fen")
+        print(self.fen)
+        fen = self.fen.split(" ")
+
+        self.pieces = []
+
+        self.board = []
+        for i in range(8):
+            self.board.append([])
+            for j in range(8):
+                self.board[i].append(0)
+
+        for n, row in enumerate(fen[0].split("/")):
             c = 0
             for char in row:
-                if char in range(1,9):
+                if char in [str(x) for x in range(1,9)]:
                     c += int(char)
 
                 elif char.lower() in FEN_PIECES:
@@ -46,9 +62,129 @@ class Board:
                         colour = "Black"
 
                     piece = FEN_PIECES[char.lower()]([c,n], colour, self)
+                    if piece.name == "Pawn":
+                        if (piece.colour == "Black" and piece.y) == 1 or (piece.colour == "White" and piece.y == 6):
+                            piece.moved = False
+                        else:
+                            piece.moved = True
                     self.board[c][n] = piece
                     self.pieces.append(piece)
                     c += 1
+
+        if fen[1] == "w":
+            self.player = "White"
+
+        else:
+            self.player = "Black"
+
+        if fen[2] == "-":
+            for piece in self.pieces:
+                if piece.name == "Rook":
+                    rook.moved = True
+
+        elif len(fen[2]) != 4:
+            for char in fen[2]:
+                if char == "K":
+                    self.board[7][7].moved = False
+
+                elif char == "Q":
+                    self.board[0][7].moved = False
+
+                elif char == "k":
+                    self.board[7][0].moved = False
+
+                elif char == "q":
+                    self.board[0][0].moved = False
+
+        if fen[3] != "-":
+            for pos in fen[3].split(","):
+                x = int(pos[0])
+                y = int(pos[1])
+                print(self.board[x][y])
+                print(self.board[y][x])
+                self.board[x][y].just_moved2 = True
+
+    def get_fen(self):
+        piece_info = ""
+        for row in range(8):
+            empty = 0
+            for col in range(8):
+                piece = self.board[col][row]
+                if piece == 0:
+                    empty += 1
+
+                else:
+                    if empty != 0:
+                        piece_info += str(empty)
+                        empty = 0
+
+                    letter = PIECES_FEN[piece.name]
+                    if piece.colour == "White":
+                        letter = letter.upper()
+
+                    piece_info += letter
+            if empty != 0:
+                piece_info += str(empty)
+            piece_info += "/"
+            empty = 0
+        piece_info = piece_info[:-1]
+
+
+        moving = "w" if self.player == "White" else "b"
+
+        castling = []
+
+        for piece in self.pieces:
+            if piece.name == "Rook" and not piece.moved:
+                letter = 0
+                if piece.x == 7:
+                    letter = "k"
+                else:
+                    letter = "q"
+                if piece.colour == "White":
+                    letter = letter.upper()
+
+                castling.append(letter)
+
+        for piece in self.pieces:
+            if piece.name == "King" and piece.moved:
+                if piece.colour == "White":
+                    for char in castling:
+                        if char == char.upper():
+                            castling.remove(char)
+
+                else:
+                    for char in castling:
+                        if char == char.lower():
+                            castling.remove(char)
+
+        castling = "".join(castling)
+
+        en_passant = "-"
+        c = 0
+        for piece in self.pieces:
+            if piece.name == "Pawn":
+                if piece.just_moved2:
+                    c += 1
+                    if c == 1:
+                        en_passant = str(piece.x) + str(piece.y) + ","
+
+                    else:
+                        en_passant += str(piece.x) + str(piece.y) + ","
+
+        if len(en_passant) > 1:
+            en_passant = en_passant[:-1]
+
+        fen = piece_info + " " + moving + " " + castling + " " + en_passant
+        print("SAVING FEN")
+        print(fen)
+        return fen 
+
+    def save_state(self):
+        self.saved_state = self.get_fen()
+
+    def load_state(self):
+        self.__dict__.update(Board(self.saved_state).__dict__)
 
     def get_move_info(self, piece, pos):
 
@@ -141,9 +277,13 @@ class Board:
 
         self.board[piece.x][piece.y] = 0
         if self.board[pos[0]][pos[1]] != 0:
-            print("xd")
-            print(self.board[pos[0]][pos[1]])
+            print(f"Pos: {pos}")
+            print(self.board[pos[0]][pos[1]].pos)
+            print_board(self)
+            print(len(self.pieces))
             self.pieces.remove(self.board[pos[0]][pos[1]])
+            if self.board[pos[0]][pos[1]].name == "Queen" and not checking_mate:
+                print("CHUPA MI MUÑEÑO")
         self.board[pos[0]][pos[1]] = piece
         piece.move(pos)
 
@@ -156,7 +296,7 @@ class Board:
                 new_piece = Queen(piece.pos, piece.colour, self)
                 self.board[piece.x][piece.y] = new_piece
                 self.pieces.remove(piece)
-                self.pieces.append(new_pieces)
+                self.pieces.append(new_piece)
 
             elif piece.colour == "Black" and piece.y == 7:
                 new_piece = Queen(piece.pos, piece.colour, self)
@@ -282,11 +422,6 @@ class Board:
 
         return value
 
-    def save_state(self):
-        self.saved_state = pickle.dumps(self)
-
-    def load_state(self):
-        self.__dict__.update(pickle.loads(self.saved_state).__dict__)
 
 
 def print_board(board):
@@ -294,5 +429,4 @@ def print_board(board):
         for c in row:
             print(c, end=" ")
         print("\n")
-
-board = Board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+board = Board()

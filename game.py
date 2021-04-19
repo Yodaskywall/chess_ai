@@ -7,7 +7,7 @@ WHITE_CLR = (232,195,158)
 
 
 pygame.init()
-width, height = 1000, 1000
+width = height = 500
 
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Chess mf")
@@ -20,15 +20,18 @@ def load_sprites():
 
     for piece in pieces:
         black = pygame.image.load(f"sprites/black/{piece}.png")
-        black = pygame.transform.scale(black, (125, 125))
+        black = pygame.transform.scale(black, (height // 8, width // 8))
 
         white = pygame.image.load(f"sprites/white/{piece}.png")
-        white = pygame.transform.scale(white, (125,125))
+        white = pygame.transform.scale(white, (height // 8, width // 8))
 
         sprites[piece] = [black, white]
 
     circle = pygame.image.load("sprites/other/circle.png")
+    circle = pygame.transform.scale(circle, (height // 8, width // 8))
+
     dot = pygame.image.load("sprites/other/dot.png")
+    dot = pygame.transform.scale(dot, (height//8, width//8))
 
     sprites["dot"] = dot
     sprites["circle"] = circle
@@ -124,9 +127,11 @@ while game.board.winner is None:
             quit()
 
         elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_k and not move_info is None:
-                game.board.unmove(move_info)
-                move_info = None
+            if event.key == pygame.K_k and not game.board.saved_state is None:
+                game.board.load_state()
+
+            elif event.key == pygame.K_l:
+                game.board.save_state()
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             square = game.get_square(pygame.mouse.get_pos())
@@ -144,7 +149,6 @@ while game.board.winner is None:
                     game.squares[square_pos[0] * 8 + square_pos[1]].state = 2
 
             elif game.piece_selected and [square.x, square.y] in game.piece_selected.possible_moves():
-               move_info = game.board.get_move_info(game.piece_selected, [square.x, square.y]) 
                game.board.move(game.piece_selected, [square.x, square.y]) 
                for square in game.squares:
                    if square.state != 0:
@@ -154,7 +158,6 @@ while game.board.winner is None:
             elif game.piece_selected and [square.x, square.y] in [pito[:2] for pito in game.piece_selected.possible_moves()]:
                for pito in game.piece_selected.possible_moves():
                    if pito[0] == square.x and pito[1] == square.y:
-                       move_info = game.board.get_move_info(game.piece_selected, pito)
                        game.board.move(game.piece_selected, pito) 
                        for square in game.squares:
                            if square.state != 0:

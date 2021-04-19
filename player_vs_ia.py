@@ -8,7 +8,7 @@ WHITE_CLR = (232,195,158)
 
 
 pygame.init()
-width, height = 1000, 1000
+width = height = 500
 
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Chess mf")
@@ -21,20 +21,24 @@ def load_sprites():
 
     for piece in pieces:
         black = pygame.image.load(f"sprites/black/{piece}.png")
-        black = pygame.transform.scale(black, (125, 125))
+        black = pygame.transform.scale(black, (height // 8, width // 8))
 
         white = pygame.image.load(f"sprites/white/{piece}.png")
-        white = pygame.transform.scale(white, (125,125))
+        white = pygame.transform.scale(white, (height // 8, width // 8))
 
         sprites[piece] = [black, white]
 
     circle = pygame.image.load("sprites/other/circle.png")
+    circle = pygame.transform.scale(circle, (height // 8, width // 8))
+
     dot = pygame.image.load("sprites/other/dot.png")
+    dot = pygame.transform.scale(dot, (height//8, width//8))
 
     sprites["dot"] = dot
     sprites["circle"] = circle
 
     return sprites
+
 
 SPRITES = load_sprites()
 
