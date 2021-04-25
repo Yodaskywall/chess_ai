@@ -1,6 +1,7 @@
 from pieces import *
 from copy import deepcopy
 import pickle
+import time
 
 pieces = {
     "p" : "Pawn",
@@ -20,13 +21,34 @@ piece_value = {
     "King" : 900
 }
 
+class Stack:
+    def __init__(self):
+        self.stack = []
+
+    def add(self, x):
+        self.stack.append(x)
+
+    def pop(self):
+        if len(self.stack) == 0:
+            return None
+        x = self.stack[-1]
+        del self.stack[-1]
+        return x
+
+    def peek(self):
+        if len(self.stack) != 0:
+            return self.stack[-1]
+
+    def length(self):
+        return len(self.stack)
+
 class Board:
     def __init__(self, fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"):
         self.board = []
         self.pieces = []
         self.player = "White"
         self.winner = None
-        self.saved_state = None
+        self.saved_state = Stack()
         for i in range(8):
             self.board.append([])
             for j in range(8):
@@ -36,8 +58,6 @@ class Board:
         self.load_fen()
 
     def load_fen(self):
-        print("loading fen")
-        print(self.fen)
         fen = self.fen.split(" ")
 
         self.pieces = []
@@ -82,6 +102,10 @@ class Board:
                 if piece.name == "Rook":
                     rook.moved = True
 
+
+        if not self.winner is None:
+            self.winner = None
+
         elif len(fen[2]) != 4:
             for char in fen[2]:
                 if char == "K":
@@ -100,9 +124,8 @@ class Board:
             for pos in fen[3].split(","):
                 x = int(pos[0])
                 y = int(pos[1])
-                print(self.board[x][y])
-                print(self.board[y][x])
                 self.board[x][y].just_moved2 = True
+
 
     def get_fen(self):
         piece_info = ""
@@ -176,15 +199,18 @@ class Board:
             en_passant = en_passant[:-1]
 
         fen = piece_info + " " + moving + " " + castling + " " + en_passant
-        print("SAVING FEN")
-        print(fen)
         return fen 
 
     def save_state(self):
-        self.saved_state = self.get_fen()
+        print("saving")
+        self.saved_state.add(self.get_fen())
 
     def load_state(self):
-        self.__dict__.update(Board(self.saved_state).__dict__)
+        print("loading")
+        to_load = self.saved_state.pop()
+        self.fen = to_load
+        self.load_fen()
+        #self.__dict__.update(Board(self.saved_state).__dict__)
 
     def get_move_info(self, piece, pos):
 
@@ -212,45 +238,45 @@ class Board:
             move_info["moved_to"] = pos
 
         return move_info
-
-    def remove_piece(self, pos):
-        piece = self.board[pos[0]][pos[1]]
-        print(f"removing from pos: {pos}")
-        if piece == 0:
-            print("LA ESTÁS LIANDO MUCHOO")
-        if piece in self.pieces:
-            self.pieces.remove(piece)
-        self.board[pos[0]][pos[1]] = 0
-
-    def add_piece(self, piece):
-        print(f"adding piece {piece.name} {piece.pos}")
-        self.pieces.append(piece)
-        self.board[piece.x][piece.y] = piece
-        piece.board.__dict__.update(self.__dict__)
-
-    def unmove(self, move_info):
-        if not (move_info["enrocando"] is None):
-            self.remove_piece(move_info["enrocando"][1])
-            self.remove_piece(move_info["moved_to"])
-            self.add_piece(move_info["enrocando"][0])
-            self.add_piece(move_info["moving"])
-
-        else:
-            self.remove_piece(move_info["moved_to"])
-            self.add_piece(move_info["moving"])
-            if not (move_info["eating"] is None):
-                self.add_piece(move_info["eating"])
-
-        if not (self.winner is None):
-            self.winner = None
-
-        if self.player == "Black":
-            self.player = "White"
-
-        else:
-            self.player = "Black"
-
-
+# 
+#     def remove_piece(self, pos):
+#         piece = self.board[pos[0]][pos[1]]
+#         print(f"removing from pos: {pos}")
+#         if piece == 0:
+#             print("LA ESTÁS LIANDO MUCHOO**************************************************")
+#         if piece in self.pieces:
+#             self.pieces.remove(piece)
+#         self.board[pos[0]][pos[1]] = 0
+# 
+#     def add_piece(self, piece):
+#         print(f"adding piece {piece.name} {piece.pos}")
+#         self.pieces.append(piece)
+#         self.board[piece.x][piece.y] = piece
+#         piece.board.__dict__.update(self.__dict__)
+# 
+#     def unmove(self, move_info):
+#         if not (move_info["enrocando"] is None):
+#             self.remove_piece(move_info["enrocando"][1])
+#             self.remove_piece(move_info["moved_to"])
+#             self.add_piece(move_info["enrocando"][0])
+#             self.add_piece(move_info["moving"])
+# 
+#         else:
+#             self.remove_piece(move_info["moved_to"])
+#             self.add_piece(move_info["moving"])
+#             if not (move_info["eating"] is None):
+#                 self.add_piece(move_info["eating"])
+# 
+#         if not (self.winner is None):
+#             self.winner = None
+# 
+#         if self.player == "Black":
+#             self.player = "White"
+# 
+#         else:
+#             self.player = "Black"
+# 
+# 
     def move(self, piece, pos, checking_mate=False, enrocando=False):
         if len(pos) == 3 and pos[2].name == "Rook":
             if pos[2].x > 4:
@@ -277,10 +303,6 @@ class Board:
 
         self.board[piece.x][piece.y] = 0
         if self.board[pos[0]][pos[1]] != 0:
-            print(f"Pos: {pos}")
-            print(self.board[pos[0]][pos[1]].pos)
-            print_board(self)
-            print(len(self.pieces))
             self.pieces.remove(self.board[pos[0]][pos[1]])
             if self.board[pos[0]][pos[1]].name == "Queen" and not checking_mate:
                 print("CHUPA MI MUÑEÑO")
@@ -335,7 +357,8 @@ class Board:
                 self.winner = "Black"
 
 
-    def check_mate(self, piece, move):
+    def check_maate(self, piece, move):
+        ini = time.time()
         new_board = deepcopy(self)
         for p in new_board.pieces:
             if p.pos == piece.pos:
@@ -370,10 +393,12 @@ class Board:
 
 
         new_board = 0
+        print(f"mate runtime: {time.time()-ini}")
         return mate
-
-    def check_maate(self, piece, move):
-        move_info = self.get_move_info(piece, move) 
+    
+    def check_mate(self, piece, move):
+        ini = time.time()
+        self.save_state()
         self.move(piece, move, True)
         opposite_king = {}
         for p in self.pieces:
@@ -402,8 +427,11 @@ class Board:
                         mate = 3
                     #return "White"
 
-        self.unmove(move_info)
+
+        self.load_state()
+        print(f"mate runtime: {time.time()-ini}")
         return mate
+
     
     def in_mate(self):
         for p in self.pieces:
