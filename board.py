@@ -2,6 +2,9 @@ from pieces import *
 from copy import deepcopy
 import pickle
 import time
+import string
+
+alphabet = string.ascii_lowercase
 
 pieces = {
     "p" : "Pawn",
@@ -122,8 +125,23 @@ class Board:
 
         if fen[3] != "-":
             for pos in fen[3].split(","):
-                x = int(pos[0])
+                x = alphabet.index(pos[0])
                 y = int(pos[1])
+                if y == 3:
+                    y = 4
+
+                elif y == 6:
+                    y = 5
+
+                elif y == 7:
+                    y = 6
+
+                elif y == 2:
+                    y = 3
+
+                y = 8 - y
+                print(self.fen)
+                print(x,y)
                 self.board[x][y].just_moved2 = True
 
 
@@ -189,11 +207,30 @@ class Board:
             if piece.name == "Pawn":
                 if piece.just_moved2:
                     c += 1
+                    standard_x = alphabet[piece.x]
+                    print("xd")
+                    print(piece.y)
+                    standard_y = 8 - piece.y
+                    
+                    if standard_y == 4:
+                        standard_y = 3
+
+                    elif standard_y == 3:
+                        standard_y = 2
+
+                    elif standard_y == 5:
+                        standard_y = 6
+
+                    elif standard_y == 6:
+                        standard_y = 7
+
+                    print(standard_y)
+
                     if c == 1:
-                        en_passant = str(piece.x) + str(piece.y) + ","
+                        en_passant = standard_x + str(standard_y) + ","
 
                     else:
-                        en_passant += str(piece.x) + str(piece.y) + ","
+                        en_passant += standard_x + str(standard_y) + ","
 
         if len(en_passant) > 1:
             en_passant = en_passant[:-1]
@@ -202,11 +239,9 @@ class Board:
         return fen 
 
     def save_state(self):
-        print("saving")
         self.saved_state.add(self.get_fen())
 
     def load_state(self):
-        print("loading")
         to_load = self.saved_state.pop()
         self.fen = to_load
         self.load_fen()
@@ -357,7 +392,7 @@ class Board:
                 self.winner = "Black"
 
 
-    def check_maate(self, piece, move):
+    def check_mate(self, piece, move):
         ini = time.time()
         new_board = deepcopy(self)
         for p in new_board.pieces:
@@ -393,10 +428,9 @@ class Board:
 
 
         new_board = 0
-        print(f"mate runtime: {time.time()-ini}")
         return mate
     
-    def check_mate(self, piece, move):
+    def check_maate(self, piece, move):
         ini = time.time()
         self.save_state()
         self.move(piece, move, True)

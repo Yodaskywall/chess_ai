@@ -1,10 +1,11 @@
 from board import Board
 import pygame
 import time 
+import string
 
 BLACK_CLR = (107,61,15)
 WHITE_CLR = (232,195,158)
-
+alphabet = string.ascii_lowercase
 
 pygame.init()
 width = height = 500
@@ -145,11 +146,13 @@ while game.board.winner is None:
 
                 square.state = 1
                 game.piece_selected = piece
+                print(piece.pos)
                 for square_pos in piece.possible_moves():
                     game.squares[square_pos[0] * 8 + square_pos[1]].state = 2
 
             elif game.piece_selected and [square.x, square.y] in game.piece_selected.possible_moves():
                game.board.move(game.piece_selected, [square.x, square.y]) 
+               print(game.board.get_fen())
                for square in game.squares:
                    if square.state != 0:
                        square.state = 0
