@@ -25,8 +25,8 @@ def parse(filename):
     last = line[-1].split(" ")
     moves.append(last[0])
     score = last[1]
-    print(moves)
-    print(score)
+
+    return moves
 
 
 if __name__ == "__main__":
