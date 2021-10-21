@@ -69,7 +69,7 @@ class Board:
         for i in range(8):
             self.board.append([])
             for j in range(8):
-self.board[i].append(0)
+                self.board[i].append(0)
 
         for n, row in enumerate(fen[0].split("/")):
             c = 0

@@ -18,7 +18,8 @@ def prepare_data(filename):
 
         else:
             player = "White"
-
+        
+        move.replace("x", "")
 
         if move == "O-O":
             print("Castle")
