@@ -23,6 +23,7 @@ def prepare_data(filename):
         # X means capture, the program handles if there is a capture or not on its own
         move = move.replace("cx", "")
         move = move.replace("x", "")
+        move = move.replace("+", "")
 
         if move == "O-O-O":
             #Queenside castle
@@ -58,9 +59,16 @@ def prepare_data(filename):
                 pos = [6,0]
 
             
-        elif len(move) == 3 or len(move) == 2:
+        elif len(move) == 3 or len(move) == 2 or len(move) == 4:
             moving_x = None
-            if len(move) == 3:
+
+            if len(move) == 4:
+                piece_name = pieces[move[0].lower()]
+                moving_x = alphabet.index(move[1])
+                x = alphabet.index(move[2])
+                y = 8 - int(move[3])
+
+            elif len(move) == 3:
                 if move[0].upper() == move[0]:
                     piece_name = pieces[move[0].lower()]
                 else:

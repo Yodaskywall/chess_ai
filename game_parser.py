@@ -17,14 +17,12 @@ def parse(filename):
     line = line.split(".")
     moves = []
 
-    for move in line[1:-1]:
-        bw_move = move[:-2].split(" ")
+    for move in line[1:]:
+        print("awe")
+        print(move)
+        bw_move = move.split(" ")
         moves.append(bw_move[0])
         moves.append(bw_move[1])
-
-    last = line[-1].split(" ")
-    moves.append(last[0])
-    score = last[1]
 
     return moves
 
