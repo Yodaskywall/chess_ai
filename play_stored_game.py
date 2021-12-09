@@ -121,7 +121,7 @@ class Game:
 game = Game()
 
 move_info = None
-moves = prepare_data("stored_games/239game.pgn")
+moves = prepare_data("stored_games/240game.pgn")
 c = 0
 
 while game.board.winner is None:
@@ -133,6 +133,7 @@ while game.board.winner is None:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_n:
                 #Next turn here
+                print(c)
                 move = moves[c]
                 c += 1
                 piece_pos = move[0]

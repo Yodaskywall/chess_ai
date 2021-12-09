@@ -11,6 +11,7 @@ def prepare_data(filename):
 
     c = 0
     player = "w"
+    boards = []
     for move in raw_moves:
         c+=1
         print(f"Move: {c}")
@@ -119,5 +120,5 @@ def prepare_data(filename):
 
 
 if __name__ == "__main__":
-    prepare_data("sample_game.pgn")
+    prepare_data("stored_games/240game.pgn")
             
