@@ -2,6 +2,45 @@ from game_parser import parse
 from board import Board, pieces, alphabet
 
 
+def board_to_array(board=Board()):
+    # Will convert a board to an 385 array
+    # 0th value is player to move
+    # Then 6 neurons representing each piece for each square
+    # 1 means there is a white piece
+    # -1 means there is a black piece
+    # 0 means no piece
+
+    
+    piece_to_num = {"Pawn" : 0, "Knight" : 1, "Bishop" : 2,
+            "Rook" : 3, "Queen" : 4, "King": 5}
+
+
+    array = [0] * 385
+    if board.player == "White":
+        array[0] = 1 
+
+    else:
+        array[0] = -1
+
+    for piece in board.pieces:
+        pos = piece.x * 48 + piece.y * 6 + piece_to_num[piece.name] + 1
+        print(pos)
+        if piece.colour == "White":
+            array[pos] = 1
+
+        else:
+            array[pos] = -1
+
+    print(array)
+    return array
+
+
+
+def movepair_to_1darray:
+    pass
+
+
+
 
 def prepare_data(filename):
     raw_moves = parse(filename)
@@ -14,7 +53,9 @@ def prepare_data(filename):
     boards = []
     for move in raw_moves:
         c+=1
+        boards.append(board_to_array(board))
         print(f"Move: {c}")
+        print(move)
         if player == "White":
             player = "Black"
 
@@ -62,6 +103,7 @@ def prepare_data(filename):
             
         elif len(move) == 3 or len(move) == 2 or len(move) == 4:
             moving_x = None
+            print(move)
 
             if len(move) == 4:
                 piece_name = pieces[move[0].lower()]
@@ -115,10 +157,13 @@ def prepare_data(filename):
     print(moves)
 
 
-    return moves
+    return moves, boards
 
 
 
 if __name__ == "__main__":
-    prepare_data("stored_games/240game.pgn")
+    moves, boards = prepare_data("stored_games/0game.pgn")
+    print("****************************************************")
+    for move in moves:
+        print(move)
             

@@ -121,7 +121,7 @@ class Game:
 game = Game()
 
 move_info = None
-moves = prepare_data("stored_games/240game.pgn")
+moves = prepare_data("stored_games/0game.pgn")
 c = 0
 
 while game.board.winner is None:

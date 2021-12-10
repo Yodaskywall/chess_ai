@@ -22,7 +22,11 @@ def parse(filename):
         print(move)
         bw_move = move.split(" ")
         moves.append(bw_move[0])
-        moves.append(bw_move[1])
+        if len(bw_move) == 3:
+            moves.append(bw_move[1])
+
+        else:
+            print(bw_move)
 
     return moves
 
