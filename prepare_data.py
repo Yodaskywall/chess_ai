@@ -1,3 +1,4 @@
+import numpy as np
 from game_parser import parse
 from board import Board, pieces, alphabet
 
@@ -24,22 +25,48 @@ def board_to_array(board=Board()):
 
     for piece in board.pieces:
         pos = piece.x * 48 + piece.y * 6 + piece_to_num[piece.name] + 1
-        print(pos)
         if piece.colour == "White":
             array[pos] = 1
 
         else:
             array[pos] = -1
 
-    print(array)
     return array
 
 
 
-def movepair_to_1darray:
-    pass
+def movepair_to_1darray(pair):
+    array = [0] * 4096
+    index = pair[1][1] * 512 + pair[1][0] * 64 + pair[0][1] * 8 + pair[0][0]
+    array[index] = 1
+    return array
 
 
+def index_to_movepair(index):
+    x1 = 0
+    y1 = 0
+    x2 = 0
+    y2 = 0
+
+    while index > 0:
+        if index >= 512:
+            index -= 512
+            y2 += 1
+
+        elif index >= 64:
+            index -= 64
+            x2 += 1
+
+        elif index >= 8:
+            index -=8 
+            y1 += 1
+
+        else:
+            index -= 1
+            x1 += 1
+
+
+    return [[x1,y1], [x2,y2]]
 
 
 def prepare_data(filename):
@@ -102,12 +129,27 @@ def prepare_data(filename):
 
             
         elif len(move) == 3 or len(move) == 2 or len(move) == 4:
+            # I know its bad practice but Im lazy
+            # moving_y is a flag, moving_x is the coordinate
+            # if moving_y is false, moving_x is the x coordinate
+            # if moving_y is true, moving_x is the y coordinate
             moving_x = None
-            print(move)
+            moving_y = False
 
             if len(move) == 4:
+                is_int = False
                 piece_name = pieces[move[0].lower()]
-                moving_x = alphabet.index(move[1])
+                try:
+                    num = int(move[1])
+                    is_int = True
+                except Exception as e:
+                    print(e)
+                    print("***********************************************************************************************************************")
+                if is_int:
+                    moving_x = 8 - num
+                    moving_y = True
+                else:
+                    moving_x = alphabet.index(move[1])
                 x = alphabet.index(move[2])
                 y = 8 - int(move[3])
 
@@ -128,7 +170,7 @@ def prepare_data(filename):
             found = False
             moving_piece = None
             for piece in board.pieces:
-                if piece.colour == player and piece.name == piece_name and (moving_x is None or piece.x == moving_x):
+                if piece.colour == player and piece.name == piece_name and ((moving_x is None) or (piece.x == moving_x and not moving_y) or (piece.y == moving_x and moving_y)):
                     for poss_move in piece.possible_moves():
                         if poss_move[0] == x and poss_move[1] == y:
                             if not (moving_piece is None):
@@ -160,10 +202,30 @@ def prepare_data(filename):
     return moves, boards
 
 
+def get_XY(moves, boards):
+    X = []
+    Y = []
+    for move in moves:
+       Y.append(np.array(movepair_to_1darray(move)))
+
+    for board in boards:
+        X.append(np.array(board))
+
+    X = np.array(X)
+    Y = np.array(Y)
+
+    return X, Y
+
+
 
 if __name__ == "__main__":
-    moves, boards = prepare_data("stored_games/0game.pgn")
-    print("****************************************************")
-    for move in moves:
-        print(move)
-            
+    moves, boards = prepare_data("stored_games/102game.pgn")
+    X, Y = get_XY(moves,boards)
+    print("X: ")
+    print(X)
+    print(type(X))
+    print(X.shape)
+    print("Y: ")
+    print(Y)
+    print(type(Y))
+    print(Y.shape)
